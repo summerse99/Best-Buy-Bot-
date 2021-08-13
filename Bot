@@ -1,0 +1,132 @@
+import time
+from selenium import webdriver
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.expected_conditions import presence_of_element_located
+from pickle import TRUE
+import random
+
+
+profile = webdriver.FirefoxProfile()
+
+profile.set_preference("general.useragent.override", "marshmallow")
+
+option = webdriver.FirefoxOptions()
+option.add_argument("window-size=1280,800")
+option.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36")
+option.add_argument('proxy-server=106.122.8.54:3128')
+
+driver = webdriver.Firefox(profile)
+
+driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+# dummy URL and graphics URL 
+# replace all driver.get() with the graphics URL when running. To test, use dummy. 
+
+dummyURL = "https://www.bestbuy.com/site/microsoft-bluetooth-mouse-matte-black/6379633.p?skuId=6379633#tab=buyingOptions?bof=openbox"
+graphicsURL = "https://www.bestbuy.com/site/nvidia-geforce-rtx-3080-10gb-gddr6x-pci-express-4-0-graphics-card-titanium-and-black/6429440.p?skuId=6429440"
+
+# replace with your information 
+bestBuySignIn = ""
+bestBuyPass = ""
+CVV = ""
+
+# replace with dummy URL 
+driver.get(dummyURL)  
+driver.maximize_window()
+botDetection = 8
+buyButton = False
+
+while not buyButton:
+    
+ # checks if addToCart is enabled      
+    try: 
+        
+        addToCartBtn = addButton = driver.find_element_by_class_name("btn-disabled")
+        print("Button isn't ready yet.")
+        time.sleep(45)
+        driver.refresh()
+        
+  # goes through checkout process if is  
+    except:
+        
+        try:
+                        
+# add To Cart              
+            element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "btn-primary")))  
+            addB = driver.find_element_by_class_name("btn-primary")            
+            addB.click()
+            print("addtoCart button is clicked")
+             
+# minorly worried this while loop will throw an unnecessary error while processing the addtoCart. 
+# without it, Selenium will wait on goToCart up till the full hour before realizing there is an error 
+# and throwing an exception.   
+            x = 0
+            
+            time.sleep(9)
+            
+            while x <= 0:
+                print("Entering Queue")
+                
+                time.sleep(10)
+                    
+                if WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "go-to-cart-button"))):
+                    WebDriverWait(driver, 25000).until(EC.presence_of_element_located((By.CLASS_NAME, "go-to-cart-button"))).click()
+                    print("added")
+                    x = 1  
+
+                if WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "btn-primary"))):
+                    element = WebDriverWait(driver, 400).until(EC.presence_of_element_located((By.CLASS_NAME, "btn-primary").click()))
+                    print("addtocart clicked again")
+                    if botDetection < 10:
+                        driver.refresh()
+            
+             
+# checkout   
+            element = WebDriverWait(driver, 40).until(EC.presence_of_element_located((By.CLASS_NAME, "btn.btn-lg.btn-block.btn-primary")))  
+            checkout = driver.find_element_by_class_name("btn.btn-lg.btn-block.btn-primary")
+            checkout.click() 
+            print("checkout button clicked")
+            
+            
+# sending email for login
+            element = WebDriverWait(driver, 40).until(EC.presence_of_element_located((By.ID, "fld-e")))  
+            email = driver.find_element_by_id("fld-e")
+            email.send_keys(bestBuySignIn)
+            print("Inputted email")
+        
+# sending password for login
+            element = WebDriverWait(driver, 40).until(EC.presence_of_element_located((By.ID, "fld-p1")))  
+            password = driver.find_element_by_id("fld-p1")
+            password.send_keys(bestBuyPass)
+            print("inputted password")
+            
+# sign - in 
+            element = WebDriverWait(driver, 40).until(EC.presence_of_element_located((By.CLASS_NAME, "cia-form__controls")))  
+            signIn = driver.find_element_by_class_name("cia-form__controls")
+            print("signIn was clicked")
+            signIn.click() 
+             
+# sending CVV code for card over - replace with yours 
+            element = WebDriverWait(driver, 40).until(EC.presence_of_element_located((By.ID, "credit-card-cvv")))  
+            securityCode = driver.find_element_by_id("credit-card-cvv")
+            securityCode.send_keys(CVV)
+            
+# re-enable the placeOrder.click() when read to fully run and complete purchase       
+            element = WebDriverWait(driver, 40).until(EC.presence_of_element_located((By.CLASS_NAME, "button--place-order-fast-track")))  
+            print("If it restarts here the class name for ")
+            placeOrder = driver.find_element_by_class_name("button--place-order-fast-track")
+            print("ClassName is right ")
+            #placeOrder.click()
+            print("Graphics card is bought")
+            
+            buyButton = True 
+        
+# Exception thrown that restarts the bot at the beginning 
+        except:
+            driver.get(dummyURL) # replace with graphics URL 
+            print("Restarting bot")
+            botDetection = botDetection + 1
+            time.sleep(botDetection)
+            continue
+            
